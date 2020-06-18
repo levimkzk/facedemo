@@ -14,10 +14,9 @@ import { UserInfoComponent } from './components/user-info/user-info.component';
 export class Tab1Page {
 
   public userInfoList: any[] = [];
-  public backData: any;
   private client_id: string = 'rTD5KIe8AnN7rUy7O1nCpqto';
   private client_secret: string = 'ZfrkZKt5fTqLh9e17OknYQk7QxuuBEpR';
-  private host: any = '/api' + '/oauth/2.0/token?grant_type=client_credentials&client_id=' + this.client_id + '&client_secret=' + this.client_secret;
+  private host: any = 'https://aip.baidubce.com' + '/oauth/2.0/token?grant_type=client_credentials&client_id=' + this.client_id + '&client_secret=' + this.client_secret;
   private access_token: any;
   // public x:number = 1;
 
@@ -47,16 +46,17 @@ export class Tab1Page {
           resolve(0);
         }).catch(err => {
           reject(err);
+          console.log(err);
         })
     })
   }
 
   getUsers() {
-    var url = '/api' + '/rest/2.0/face/v3/faceset/group/getusers' + "?access_token=" + this.access_token;
-    var params = "{\"group_id\":\"group1\"}";
+    var url = 'https://aip.baidubce.com' + '/rest/2.0/face/v3/faceset/group/getusers' + "?access_token=" + this.access_token;
+    var params = { "group_id": "group1" };
     return new Promise((resolve, reject) => {
       this.http.post(url, params).then((response: any) => {
-        console.log(response.result.user_id_list);
+        this.userInfoList.splice(0, this.userInfoList.length);
         for (let element of response.result.user_id_list) {
           this.userInfoList.push({ 'userId': element, 'userInfo': '' })
         };
@@ -70,8 +70,8 @@ export class Tab1Page {
 
   }
   getUserInfo(i: number) {
-    var infourl = '/api' + '/rest/2.0/face/v3/faceset/user/get' + '?access_token=' + this.access_token;
-    var params = '{\"user_id\":\"' + this.userInfoList[i - 1].userId + '\",\"group_id\":\"group1\"}';
+    var infourl = 'https://aip.baidubce.com' + '/rest/2.0/face/v3/faceset/user/get' + '?access_token=' + this.access_token;
+    var params = { "user_id": this.userInfoList[i - 1].userId, "group_id": "group1" };
     return new Promise((resolve, reject) => {
       this.http.post(infourl, params).then((response: any) => {
         console.log(response.result.user_list[0].user_info);
@@ -81,6 +81,7 @@ export class Tab1Page {
       }, (err) => {
         console.log(err);
         reject(err);
+        console.log(err);
         this.http.toast('获取信息失败');
       })
     })
@@ -96,8 +97,8 @@ export class Tab1Page {
 
   deleteUser(k: number) {
     return new Promise((resolve, reject) => {
-      var deleteurl = '/api' + '/rest/2.0/face/v3/faceset/user/delete' + '?access_token=' + this.access_token;
-      var params = '{\"user_id\":\"' + this.userInfoList[k].userId + '\",\"group_id\":\"group1\"}';
+      var deleteurl = 'https://aip.baidubce.com' + '/rest/2.0/face/v3/faceset/user/delete' + '?access_token=' + this.access_token;
+      var params = { "user_id": this.userInfoList[k].userId, "group_id": "group1" };
       this.http.post(deleteurl, params).then((response: any) => {
         console.log(response);
         resolve(response.error_code);
@@ -127,9 +128,23 @@ export class Tab1Page {
     await modal.present();
     const { data } = await modal.onDidDismiss();
     console.log(data);
-    this.backData = data;
     if (data.result) {
-      this.userInfoList.push({ 'userId': data.userId, 'userInfo': data.userInfo })
+      var event = new Promise((resolve) => {
+        this.userInfoList.forEach((element) => {
+          if (element.userId == data.userId) {
+            resolve(1);
+          }
+        })
+        resolve(0);
+      });
+      event.then((flag) => {
+        if (!flag) {
+          this.userInfoList.push({ 'userId': data.userId, 'userInfo': data.userInfo });
+          this.http.toast('创建成功');
+        } else {
+          this.http.toast('添加成功');
+        }
+      })
     } else {
       this.http.toast('创建失败');
     }
@@ -138,14 +153,10 @@ export class Tab1Page {
   doRefresh(e) {
     // this.getList().then(()=> e.target.complete());
     this.getList().then((data) => {
-      if (!data) {
-        e.target.complete();
+      e.target.complete();
+      if (data) {
+        this.http.toast('获取信息失败');
       }
     });
-
-  }
-
-  showImage() {
-
   }
 }

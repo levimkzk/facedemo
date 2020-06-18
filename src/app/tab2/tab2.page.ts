@@ -10,6 +10,6 @@ export class Tab2Page {
   constructor() {}
 
   doRefresh(e) {
-
+    e.target.complete();
   }
 }

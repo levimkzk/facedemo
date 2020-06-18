@@ -5,6 +5,10 @@ import { NavParams } from '@ionic/angular';
 import { ActionSheetController } from '@ionic/angular';
 import { Camera, CameraOptions } from '@ionic-native/camera/ngx';
 import { ImagePicker, ImagePickerOptions } from '@ionic-native/image-picker/ngx';
+import { Platform } from '@ionic/angular';
+import { WebView } from '@ionic-native/ionic-webview/ngx';
+import { Base64 } from '@ionic-native/base64/ngx';
+
 
 
 @Component({
@@ -17,13 +21,18 @@ export class UserInfoComponent implements OnInit {
   public userId: string = '';
   public userInfo: string = '';
   public base64Image: string = '';
+  public image: any;
   public result: boolean;
+  public disabled:boolean = false;
   constructor(public nav: NavController,
     public http: HttpserviceService,
     public navParams: NavParams,
     public actionSheet: ActionSheetController,
     private camera: Camera,
-    private imagePicker: ImagePicker
+    private imagePicker: ImagePicker,
+    public platform: Platform,
+    private webview: WebView,
+    private base64: Base64
   ) { }
 
   @Input() access_token: string;
@@ -74,17 +83,19 @@ export class UserInfoComponent implements OnInit {
   takePhoto() {
     const options: CameraOptions = {
       quality: 100,
-      destinationType: this.camera.DestinationType.DATA_URL,
-      encodingType: this.camera.EncodingType.PNG,
-      mediaType: this.camera.MediaType.ALLMEDIA,
+      destinationType: this.camera.DestinationType.FILE_URI,
+      encodingType: this.camera.EncodingType.JPEG,
+      mediaType: this.camera.MediaType.PICTURE,
       sourceType: this.camera.PictureSourceType.CAMERA,
-      targetWidth: 400,
-      targetHeight: 400,
-      cameraDirection: 1
     }
     this.camera.getPicture(options).then((imageData) => {
-      this.base64Image = 'data:image/png;base64,' + imageData;
-      console.log(this.base64Image, 'base64Image');
+      this.image = this.webview.convertFileSrc(imageData);
+      this.base64.encodeFile(imageData).then((base64File: string) => {
+        this.base64Image = base64File.slice(base64File.indexOf(";base64,") + 8, base64File.length);
+      }, (err) => {
+        console.log(err);
+      });
+      console.log(this.base64Image);
       // this.doUpload(base64Image);
     }, (err) => {
       console.log(err);
@@ -97,22 +108,33 @@ export class UserInfoComponent implements OnInit {
     };
     this.imagePicker.getPictures(options).then((results) => {
       console.log('Image URI: ' + results[0]);
-      this.base64Image = 'data:image/png;base64,' + results[0];
+      this.image = this.webview.convertFileSrc(results[0]);
+      this.base64.encodeFile(results[0]).then((base64File: string) => {
+        this.base64Image = base64File.slice(base64File.indexOf(";base64,") + 8, base64File.length);
+      }, (err) => {
+        console.log(err);
+      });
+      console.log(this.base64Image);
     }, (err) => {
       console.log(err);
     });
   }
   async postData() {
-    var addurl = '/api' + '/rest/2.0/face/v3/faceset/user/add' + "?access_token=" + this.access_token;
-    var params = "{\"image\":\"" + this.base64Image + ",\"image_type\":\"BASE64\",\"group_id\":\"group1\",\"user_id\":\"" + this.userId + "\",\"user_info\":\"" + this.userInfo + ",\"quality_control\":\"LOW\",\"liveness_control\":\"LOW\"}";
+    this.disabled = true;
+    var addurl = 'https://aip.baidubce.com' + '/rest/2.0/face/v3/faceset/user/add' + "?access_token=" + this.access_token;
+    var params = { "image": this.base64Image, "image_type": "BASE64", "group_id": "group1", "user_id": this.userId, "user_info": this.userInfo, "quality_control": "LOW", "liveness_control": "LOW" };
     await this.http.post(addurl, params).then((response: any) => {
-      if (response.face_token) {
+      console.log(response);
+      this.disabled = false;
+      if (!response.error_code) {
         this.result = true;
+      } else {
+        this.result = false;
       }
     }, (err) => {
-      this.result = false;
+      console.log(err);
     })
-    this.close();
+    await this.close();
   }
 
 }

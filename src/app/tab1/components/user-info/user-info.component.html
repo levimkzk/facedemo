@@ -27,13 +27,13 @@
       </ion-item>
       <ion-item>
         <div  id='image' (click)="getactionSheet()">
-          <ion-label > 上传图片 </ion-label>
+          <img [src]="image" onerror="this.src = 'assets/image/1.jpg'" placeholder="上传图片">
         </div>
       </ion-item>
 
     </ion-list>
 
     <div class="ion-padding">
-      <ion-button expand="block" class="ion-no-margin" (click)="postData()">确认</ion-button>
+      <ion-button expand="block" class="ion-no-margin" (click)="postData()" [disabled]="disabled">确认</ion-button>
     </div>
 </ion-content>

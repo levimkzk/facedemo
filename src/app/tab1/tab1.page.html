@@ -1,10 +1,10 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
+  <ion-toolbar color="success">
     <ion-title>
       人脸库
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button color="primary" (click)="addUser()">
+      <ion-button color="dark" (click)="addUser()">
         <ion-icon name="add-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -19,8 +19,8 @@
   </ion-refresher>
   <ion-list>
     <ion-item-sliding *ngFor="let item of userInfoList;let key=index">
-      <ion-item (click)="showImage()">
-        {{item.userInfo}}
+      <ion-item>
+        ({{item.userId}}){{item.userInfo}}
       </ion-item>
       <ion-item-options side="end">
         <ion-item-option (click)="delete(key)" color="danger">删除</ion-item-option>
