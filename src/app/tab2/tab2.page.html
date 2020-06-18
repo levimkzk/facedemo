@@ -1,0 +1,15 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      识别日志
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed"  pullMin='200' pullMax='300' (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content pullingIcon="chevron-down-circle-outline" pullingText="刷新" refreshingSpinner="circles" 
+      refreshingText="加载中...">
+    </ion-refresher-content>
+  </ion-refresher>
+</ion-content>
