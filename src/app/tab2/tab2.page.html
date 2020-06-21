@@ -14,7 +14,7 @@
   </ion-refresher>
   <ion-list *ngFor="let item of facelist;let key = index">
     <ion-item *ngIf="item.result" (click)="showImage(key)">
-      <span>识别成功({{item.user_info}})</span> <span style="float: right;">{{item.date}}</span>
+      <span>识别成功({{item.user_info}})</span> <span style="padding-left: 40px;">{{item.date}}</span>
     </ion-item>
     <ion-item *ngIf="!item.result" (click)="showImage(key)">
       <span>识别失败</span><span class="date">{{item.date}}</span>
